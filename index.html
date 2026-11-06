@@ -1,0 +1,714 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CityCare Hospital - Appointment System</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f2f7fb;
+    color: #263746;
+}
+
+header {
+    background: #087e8b;
+    color: white;
+    padding: 22px;
+    text-align: center;
+}
+
+header p {
+    margin-top: 7px;
+}
+
+nav {
+    background: #05616c;
+    padding: 14px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+nav button {
+    background: transparent;
+    color: white;
+    border: 1px solid #ffffff70;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+nav button:hover {
+    background: #087e8b;
+}
+
+.container {
+    width: 92%;
+    max-width: 1000px;
+    margin: 30px auto;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px #0002;
+    margin-bottom: 22px;
+}
+
+h2 {
+    color: #087e8b;
+    margin-bottom: 18px;
+}
+
+h3 {
+    margin-bottom: 10px;
+}
+
+p {
+    line-height: 1.6;
+}
+
+label {
+    display: block;
+    margin-top: 13px;
+    font-weight: bold;
+}
+
+input, select {
+    width: 100%;
+    padding: 11px;
+    margin-top: 7px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+}
+
+.action {
+    background: #087e8b;
+    color: white;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 5px;
+    margin-top: 17px;
+    cursor: pointer;
+}
+
+.action:hover {
+    background: #05616c;
+}
+
+.danger {
+    background: #d9534f;
+}
+
+.danger:hover {
+    background: #b52b27;
+}
+
+.hidden {
+    display: none;
+}
+
+.message {
+    margin-top: 14px;
+    font-weight: bold;
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
+}
+
+.doctor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+}
+
+.doctor {
+    border: 1px solid #ddd;
+    padding: 17px;
+    border-radius: 8px;
+    background: #f9fcfd;
+}
+
+.doctor h3 {
+    color: #087e8b;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 11px;
+    text-align: left;
+    font-size: 14px;
+}
+
+th {
+    background: #087e8b;
+    color: white;
+}
+
+footer {
+    background: #05616c;
+    color: white;
+    text-align: center;
+    padding: 18px;
+    margin-top: 40px;
+}
+
+@media(max-width: 600px) {
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>CityCare Hospital</h1>
+    <p>Hospital Appointment Booking System</p>
+</header>
+
+<nav>
+    <button onclick="showSection('home')">Home</button>
+    <button onclick="showSection('doctors')">Doctors</button>
+    <button onclick="showSection('search')">Search Doctors</button>
+    <button onclick="showSection('register')">Patient Registration</button>
+    <button onclick="showSection('login')">Patient Login</button>
+    <button onclick="showSection('booking')">Book Appointment</button>
+    <button onclick="showSection('myAppointments')">My Appointments</button>
+    <button onclick="showSection('adminLogin')">Admin</button>
+    <button onclick="logout()">Logout</button>
+</nav>
+
+<main class="container">
+
+<!-- HOME -->
+<section id="home" class="card">
+    <h2>Welcome to CityCare Hospital</h2>
+    <p>Book appointments with experienced doctors easily and conveniently.</p>
+    <p>Our system helps patients find doctors, select available slots and manage appointments.</p>
+    <button class="action" onclick="showSection('doctors')">View Doctors</button>
+    <button class="action" onclick="showSection('booking')">Book Appointment</button>
+</section>
+
+<!-- DOCTOR DETAILS -->
+<section id="doctors" class="card hidden">
+    <h2>Our Doctors</h2>
+    <div id="doctorList" class="doctor-grid"></div>
+</section>
+
+<!-- SEARCH DOCTORS -->
+<section id="search" class="card hidden">
+    <h2>Search Doctors by Specialization</h2>
+
+    <label>Select Specialization</label>
+    <select id="specialization" onchange="searchDoctors()">
+        <option value="">All Specializations</option>
+        <option>Cardiology</option>
+        <option>Neurology</option>
+        <option>Orthopedics</option>
+        <option>Dermatology</option>
+        <option>General Medicine</option>
+    </select>
+
+    <div id="searchResults" class="doctor-grid" style="margin-top:20px"></div>
+</section>
+
+<!-- PATIENT REGISTRATION -->
+<section id="register" class="card hidden">
+    <h2>Patient Registration</h2>
+
+    <form id="registerForm">
+        <label>Full Name</label>
+        <input type="text" id="regName" required>
+
+        <label>Email</label>
+        <input type="email" id="regEmail" required>
+
+        <label>Phone Number</label>
+        <input type="tel" id="regPhone" required>
+
+        <label>Password</label>
+        <input type="password" id="regPassword" required minlength="4">
+
+        <button class="action" type="submit">Register</button>
+    </form>
+
+    <p id="registerMessage" class="message"></p>
+</section>
+
+<!-- PATIENT LOGIN -->
+<section id="login" class="card hidden">
+    <h2>Patient Login</h2>
+
+    <form id="loginForm">
+        <label>Email</label>
+        <input type="email" id="loginEmail" required>
+
+        <label>Password</label>
+        <input type="password" id="loginPassword" required>
+
+        <button class="action" type="submit">Login</button>
+    </form>
+
+    <p id="loginMessage" class="message"></p>
+</section>
+
+<!-- APPOINTMENT BOOKING -->
+<section id="booking" class="card hidden">
+    <h2>Book an Appointment</h2>
+    <p id="bookingUser">Please log in before booking an appointment.</p>
+
+    <form id="bookingForm">
+        <label>Select Doctor</label>
+        <select id="bookDoctor" required>
+            <option value="">Choose Doctor</option>
+        </select>
+
+        <label>Appointment Date</label>
+        <input type="date" id="appointmentDate" required>
+
+        <label>Available Time Slot</label>
+        <select id="appointmentTime" required>
+            <option value="">Choose Time</option>
+            <option>09:00 AM</option>
+            <option>10:00 AM</option>
+            <option>11:00 AM</option>
+            <option>12:00 PM</option>
+            <option>02:00 PM</option>
+            <option>03:00 PM</option>
+            <option>04:00 PM</option>
+        </select>
+
+        <button class="action" type="submit">Confirm Appointment</button>
+    </form>
+
+    <p id="bookingMessage" class="message"></p>
+</section>
+
+<!-- MY APPOINTMENTS -->
+<section id="myAppointments" class="card hidden">
+    <h2>My Appointments</h2>
+    <div id="patientAppointments"></div>
+</section>
+
+<!-- ADMIN LOGIN -->
+<section id="adminLogin" class="card hidden">
+    <h2>Admin Login</h2>
+
+    <form id="adminLoginForm">
+        <label>Username</label>
+        <input type="text" id="adminUsername" required>
+
+        <label>Password</label>
+        <input type="password" id="adminPassword" required>
+
+        <button class="action" type="submit">Admin Login</button>
+    </form>
+
+    <p id="adminMessage" class="message"></p>
+</section>
+
+<!-- ADMIN DASHBOARD -->
+<section id="adminPanel" class="card hidden">
+    <h2>Admin Appointment Management</h2>
+    <p>View and manage all patient appointments.</p>
+    <div id="allAppointments"></div>
+</section>
+
+</main>
+
+<footer>
+    <p>&copy; 2026 CityCare Hospital. All Rights Reserved.</p>
+</footer>
+
+<script>
+
+// DOCTOR DETAILS
+const doctors = [
+    {id: 1, name: "Dr. Sharma", specialization: "Cardiology", experience: "12 years"},
+    {id: 2, name: "Dr. Priya", specialization: "Neurology", experience: "10 years"},
+    {id: 3, name: "Dr. Ramesh", specialization: "Orthopedics", experience: "15 years"},
+    {id: 4, name: "Dr. Anjali", specialization: "Dermatology", experience: "8 years"},
+    {id: 5, name: "Dr. Kiran", specialization: "General Medicine", experience: "9 years"}
+];
+
+let patients = JSON.parse(localStorage.getItem("patients")) || [];
+let appointments = JSON.parse(localStorage.getItem("hospitalAppointments")) || [];
+
+let currentPatient = JSON.parse(sessionStorage.getItem("currentPatient")) || null;
+let isAdmin = false;
+
+function saveData() {
+    localStorage.setItem("patients", JSON.stringify(patients));
+    localStorage.setItem("hospitalAppointments", JSON.stringify(appointments));
+}
+
+function showSection(sectionId) {
+    document.querySelectorAll("main > section").forEach(section => {
+        section.classList.add("hidden");
+    });
+
+    const section = document.getElementById(sectionId);
+    if (section) section.classList.remove("hidden");
+
+    if (sectionId === "myAppointments") displayPatientAppointments();
+    if (sectionId === "adminPanel") displayAllAppointments();
+    if (sectionId === "booking") {
+        updateBookingUser();
+    }
+}
+
+// DISPLAY DOCTORS
+function displayDoctors(list = doctors, elementId = "doctorList") {
+    const container = document.getElementById(elementId);
+
+    if (list.length === 0) {
+        container.innerHTML = "<p>No doctors found.</p>";
+        return;
+    }
+
+    container.innerHTML = list.map(doctor => `
+        <div class="doctor">
+            <h3>${doctor.name}</h3>
+            <p><b>Specialization:</b> ${doctor.specialization}</p>
+            <p><b>Experience:</b> ${doctor.experience}</p>
+        </div>
+    `).join("");
+}
+
+// SEARCH DOCTORS
+function searchDoctors() {
+    const value = document.getElementById("specialization").value;
+
+    const results = value
+        ? doctors.filter(d => d.specialization === value)
+        : doctors;
+
+    displayDoctors(results, "searchResults");
+}
+
+// FILL DOCTOR DROPDOWN
+function loadDoctorOptions() {
+    const select = document.getElementById("bookDoctor");
+
+    select.innerHTML = '<option value="">Choose Doctor</option>';
+
+    doctors.forEach(doctor => {
+        select.innerHTML += `
+            <option value="${doctor.id}">
+                ${doctor.name} - ${doctor.specialization}
+            </option>
+        `;
+    });
+}
+
+// PATIENT REGISTRATION
+document.getElementById("registerForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("regName").value.trim();
+    const email = document.getElementById("regEmail").value.trim().toLowerCase();
+    const phone = document.getElementById("regPhone").value.trim();
+    const password = document.getElementById("regPassword").value;
+
+    if (patients.some(p => p.email === email)) {
+        showMessage("registerMessage", "Email already registered!", false);
+        return;
+    }
+
+    const patient = {
+        id: Date.now(),
+        name,
+        email,
+        phone,
+        password
+    };
+
+    patients.push(patient);
+    saveData();
+
+    showMessage("registerMessage", "Registration Successful! Please login.", true);
+    this.reset();
+});
+
+// PATIENT LOGIN
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    const password = document.getElementById("loginPassword").value;
+
+    const patient = patients.find(p =>
+        p.email === email && p.password === password
+    );
+
+    if (!patient) {
+        showMessage("loginMessage", "Invalid email or password!", false);
+        return;
+    }
+
+    currentPatient = patient;
+    sessionStorage.setItem("currentPatient", JSON.stringify(patient));
+
+    showMessage("loginMessage", "Login Successful! Welcome " + patient.name, true);
+    updateBookingUser();
+});
+
+// UPDATE BOOKING USER
+function updateBookingUser() {
+    const message = document.getElementById("bookingUser");
+
+    if (currentPatient) {
+        message.innerText = "Logged in as: " + currentPatient.name;
+    } else {
+        message.innerText = "Please log in before booking an appointment.";
+    }
+}
+
+// APPOINTMENT BOOKING
+document.getElementById("bookingForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    if (!currentPatient) {
+        showMessage("bookingMessage", "Please login before booking!", false);
+        return;
+    }
+
+    const doctorId = Number(document.getElementById("bookDoctor").value);
+    const date = document.getElementById("appointmentDate").value;
+    const time = document.getElementById("appointmentTime").value;
+
+    const doctor = doctors.find(d => d.id === doctorId);
+
+    if (!doctor) {
+        showMessage("bookingMessage", "Please select a valid doctor.", false);
+        return;
+    }
+
+    const selectedDate = new Date(date + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+        showMessage("bookingMessage", "Please select today or a future date.", false);
+        return;
+    }
+
+    // CHECK IF SLOT IS ALREADY OCCUPIED
+    const occupied = appointments.some(a =>
+        a.doctorId === doctorId &&
+        a.date === date &&
+        a.time === time &&
+        a.status === "Booked"
+    );
+
+    if (occupied) {
+        showMessage("bookingMessage", "This slot is already occupied. Choose another slot.", false);
+        return;
+    }
+
+    const appointment = {
+        id: Date.now(),
+        patientId: currentPatient.id,
+        patientName: currentPatient.name,
+        doctorId,
+        doctorName: doctor.name,
+        specialization: doctor.specialization,
+        date,
+        time,
+        status: "Booked"
+    };
+
+    appointments.push(appointment);
+    saveData();
+
+    showMessage("bookingMessage", "Appointment Booked Successfully!", true);
+    this.reset();
+});
+
+// PATIENT APPOINTMENTS
+function displayPatientAppointments() {
+    const container = document.getElementById("patientAppointments");
+
+    if (!currentPatient) {
+        container.innerHTML = "<p>Please login to view your appointments.</p>";
+        return;
+    }
+
+    const list = appointments.filter(a => a.patientId === currentPatient.id);
+
+    if (list.length === 0) {
+        container.innerHTML = "<p>No appointments found.</p>";
+        return;
+    }
+
+    container.innerHTML = `
+        <table>
+        <tr>
+            <th>ID</th>
+            <th>Doctor</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        ${list.map(a => `
+            <tr>
+                <td>${a.id}</td>
+                <td>${a.doctorName}</td>
+                <td>${a.date}</td>
+                <td>${a.time}</td>
+                <td>${a.status}</td>
+                <td>
+                    ${a.status === "Booked"
+                    ? `<button class="action danger" onclick="cancelAppointment(${a.id})">Cancel</button>`
+                    : "No action"}
+                </td>
+            </tr>
+        `).join("")}
+        </table>
+    `;
+}
+
+// CANCEL APPOINTMENT
+function cancelAppointment(id) {
+    const appointment = appointments.find(a => a.id === id);
+
+    if (!appointment || appointment.status !== "Booked") return;
+
+    appointment.status = "Cancelled";
+    saveData();
+    displayPatientAppointments();
+
+    alert("Appointment Cancelled Successfully!");
+}
+
+// ADMIN LOGIN
+document.getElementById("adminLoginForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const username = document.getElementById("adminUsername").value;
+    const password = document.getElementById("adminPassword").value;
+
+    if (username === "admin" && password === "admin123") {
+        isAdmin = true;
+        showSection("adminPanel");
+        showMessage("adminMessage", "Admin Login Successful!", true);
+    } else {
+        showMessage("adminMessage", "Invalid Admin Credentials!", false);
+    }
+});
+
+// ADMIN APPOINTMENT MANAGEMENT
+function displayAllAppointments() {
+    const container = document.getElementById("allAppointments");
+
+    if (!isAdmin) {
+        container.innerHTML = "<p>Admin login required.</p>";
+        return;
+    }
+
+    if (appointments.length === 0) {
+        container.innerHTML = "<p>No appointments available.</p>";
+        return;
+    }
+
+    container.innerHTML = `
+        <table>
+        <tr>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Specialization</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Manage</th>
+        </tr>
+        ${appointments.map(a => `
+            <tr>
+                <td>${a.patientName}</td>
+                <td>${a.doctorName}</td>
+                <td>${a.specialization}</td>
+                <td>${a.date}</td>
+                <td>${a.time}</td>
+                <td>${a.status}</td>
+                <td>
+                    ${a.status === "Booked"
+                    ? `<button class="action danger" onclick="adminCancelAppointment(${a.id})">Cancel</button>`
+                    : a.status}
+                </td>
+            </tr>
+        `).join("")}
+        </table>
+    `;
+}
+
+// ADMIN CANCEL
+function adminCancelAppointment(id) {
+    const appointment = appointments.find(a => a.id === id);
+
+    if (appointment && appointment.status === "Booked") {
+        appointment.status = "Cancelled";
+        saveData();
+        displayAllAppointments();
+        alert("Appointment cancelled by admin.");
+    }
+}
+
+// LOGOUT
+function logout() {
+    currentPatient = null;
+    isAdmin = false;
+
+    sessionStorage.removeItem("currentPatient");
+
+    showSection("home");
+    alert("Logged out successfully!");
+}
+
+// MESSAGE DISPLAY
+function showMessage(id, message, success) {
+    const element = document.getElementById(id);
+    element.innerText = message;
+    element.className = success ? "message success" : "message error";
+}
+
+// INITIALIZATION
+displayDoctors();
+searchDoctors();
+loadDoctorOptions();
+
+document.getElementById("appointmentDate").min =
+    new Date().toISOString().split("T")[0];
+
+updateBookingUser();
+
+</script>
+
+</body>
+</html>
